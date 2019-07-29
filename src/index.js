@@ -4,6 +4,11 @@ import 'semantic-ui-css/semantic.min.css';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import * as firebase from 'firebase/app'
+import { firebaseConfig } from './config/firebase'
+
+firebase.initializeApp(firebaseConfig);
+
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

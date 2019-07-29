@@ -1,21 +1,24 @@
 import React, { Component } from 'react';
 import { Form, Button, Container, Grid, Message, Segment, Header } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import { saveUserToJsonServer } from '../auth/userManager';
+import { register } from '../auth/userManager';
 
 export default class Register extends Component {
   state = {
     email: '',
-    username: ''
+    username: '',
+    password: ''
   }
 
   submit = () => {
     const user = {
       email: this.state.email,
       username: this.state.username,
+      password: this.state.password
     }
+//need to talk tot firebase first
 
-    saveUserToJsonServer(user)
+    register(user)
       .then((user) => {
         this.props.history.push('/');
         this.props.onRegister(user);
@@ -47,13 +50,13 @@ export default class Register extends Component {
                     placeholder="Enter an email"
                     onChange={(e) => this.setState({ email: e.target.value })}
                   />
-                  {/* <Form.Field
+                  <Form.Field
                     control="input"
                     type="password"
                     label="Password"
                     placeholder="Password"
                     onChange={(e) => this.setState({ password: e.target.value })}
-                  /> */}
+                  />
                   <Form.Field control="input" type="hidden" />
                   <Button fluid content="Register" color="purple" />
                 </Form>

@@ -1,7 +1,7 @@
 /*
 
 The idea here is to do authentication through firebase. This is an alternative
-to using the json-server-auth package, but there are tradeoffs 
+to using the json-server-auth package, but there are tradeoffs
 for both.
 
 Here is the workflow:
@@ -42,7 +42,7 @@ PROS
 - Allows students to easily add auth providers like google with not
 much more effort
 
-- Easier learning curve. The json-server-auth package might invite 
+- Easier learning curve. The json-server-auth package might invite
 too many questions about express and jwt's. Although there is an extra
 step in this workflow, it's not adding anything to their codebase that they
 haven't already seen
@@ -56,10 +56,13 @@ to be the other user.
 
 */
 
+  import * as firebase from 'firebase/app'
+  import "firebase/auth"
+
 const url = 'http://localhost:8088/users';
 
-const setUserInLocalStorage = (user) => {
-  localStorage.setItem('user', JSON.stringify(user));
+const setUserInSessionStorage = (user) => {
+  sessionStorage.setItem('user', JSON.stringify(user));
 }
 
 export const saveUserToJsonServer = (user) => {
@@ -72,7 +75,7 @@ export const saveUserToJsonServer = (user) => {
   })
     .then(res => res.json())
     .then(newUser => {
-      setUserInLocalStorage(newUser);
+      setUserInSessionStorage(newUser);
       return newUser;
     });
 }
@@ -93,19 +96,51 @@ export const login = (email) => {
         return;
       }
       const user = matchingUsers[0];
-      setUserInLocalStorage(user);
+      setUserInSessionStorage(user);
       return user;
     });
 }
 
-export const getUserFromLocalStorage = () => {
-  const user = localStorage.getItem('user');
+export const getUserFromSessionStorage = () => {
+  const user = sessionStorage.getItem('user');
 
   if (!user) return null;
 
   return JSON.parse(user);
 }
+//this method should do all the login things
+//it should return a promise that only resolves after all these things happen
+//1. send email and password to firebase
+//2. On success, accept the user id
+//3. Use userId to grab user object from JSON server
+//4. Save user to session storage
+export const loginUser = (email, password) => {
+  return firebase.auth().signInWithEmailAndPassword(email, password)
+  .then(data => data.user.uid)
+  .then(userId => getUser(userId)
+  .then(user => {
+    setUserInSessionStorage(user);
+    return user;
+  })
+  )
+}
 
 export const logout = () => {
-  localStorage.removeItem('user');
+  sessionStorage.removeItem('user');
+}
+
+//this method should do all the registering things
+//it should return a promise that only resolves after all these things happen
+//1. send email and password to firebase
+//2. accept the user id that firebase gives back to us
+//3. Add that user id to the user object and delete the password
+//4. send to JSON server
+export const register = (userForm) => {
+  return firebase.auth().createUserWithEmailAndPassword(userForm.email, userForm.password) //this is a promise
+  .then(data => data.user.uid)
+  .then(userId => {
+    userForm.id = userId;
+    delete userForm.password;
+    return saveUserToJsonServer(userForm);
+  })
 }
